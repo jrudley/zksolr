@@ -63,10 +63,10 @@ DeGZip-File "c:\temp\$($zk3_5_4beta.Split("/")[-1])"
 if (-not (test-path "$env:ProgramFiles\7-Zip\7z.exe")) {throw "$env:ProgramFiles\7-Zip\7z.exe needed"} 
 set-alias untar "$env:ProgramFiles\7-Zip\7z.exe" 
 $zk = $zk3_4_12.Split("/")[-1].Replace('.gz', '')
-untar x c:\temp\$zk
+untar x c:\temp\$zk -o"c:\temp\"
 
 $zk = $zk3_5_4beta.Split("/")[-1].Replace('.gz', '')
-untar x c:\temp\$zk
+untar x c:\temp\$zk -o"c:\temp\"
 
-$solr7_3_1_base = $solr7_3_1.Split("/")[-1].Replace('.zip','')
-Expand-Archive -Path "c:\temp\$($solr7_3_1.Split("/")[-1])" -DestinationPath "c:\temp\$solr7_3_1_base"
+#$solr7_3_1_base = $solr7_3_1.Split("/")[-1].Replace('.zip','')
+Expand-Archive -Path "c:\temp\$($solr7_3_1.Split("/")[-1])" -DestinationPath "c:\temp\" #"c:\temp\$solr7_3_1_base"
