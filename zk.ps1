@@ -132,3 +132,5 @@ $vmId = $vmId  + 1
 #$vmId | Out-File -Encoding utf8 "S:\$zkVersion\data\myid"
 [IO.File]::WriteAllLines("S:\$zkVersion\data\myid",  $vmid)
 
+#Restart-Computer -Force
+
