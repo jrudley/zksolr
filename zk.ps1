@@ -29,10 +29,11 @@
     Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
     #$7zip = 'https://www.7-zip.org/a/7z1805-x64.exe'
     $7zip = 'https://www.7-zip.org/a/7z1805-x64.msi'
+    $nssm = 'https://nssm.cc/ci/nssm-2.24-101-g897c7ad.zip'
     $zk3_4_10 = 'https://supergsego.com/apache/zookeeper/zookeeper-3.4.10/zookeeper-3.4.10.tar.gz'
     $zk3_4_12 = 'http://mirrors.sonic.net/apache/zookeeper/current/zookeeper-3.4.12.tar.gz'
     $zk3_5_4beta = 'http://mirrors.sonic.net/apache/zookeeper/zookeeper-3.5.4-beta/zookeeper-3.5.4-beta.tar.gz'
-    #$solr7_3_1 = 'http://mirrors.advancedhosters.com/apache/lucene/solr/7.3.1/solr-7.3.1.zip'
+    $solr7_3_1 = 'http://mirrors.advancedhosters.com/apache/lucene/solr/7.3.1/solr-7.3.1.zip'
 
     $disk = Get-Disk | Where-Object partitionstyle -eq 'raw' | Sort-Object number
     $disk | 
@@ -54,7 +55,10 @@
         Write-Output "downloading $javaSource"
         $client.downloadFile($javaSource, $javaDestination)  
     }
-
+    if (!(Test-Path "S:\downloads\$($nssm.Split("/")[-1])")) {
+        Write-Output "downloading $nssm"
+        Invoke-WebRequest -Uri $nssm -OutFile "S:\downloads\$($nssm.Split("/")[-1])"   
+    }
     if (!(Test-Path "S:\downloads\$($7zip.Split("/")[-1])")) {
         Write-Output "downloading $7zip"
         Invoke-WebRequest -Uri $7zip -OutFile "S:\downloads\$($7zip.Split("/")[-1])"   
@@ -71,10 +75,10 @@
         Write-Output "downloading $zk3_5_4beta"
         Invoke-WebRequest -Uri $zk3_5_4beta -OutFile "S:\downloads\$($zk3_5_4beta.Split("/")[-1])"
     }
-    <#if (!(Test-Path "S:\downloads\$($solr7_3_1.Split("/")[-1])")) {
+    if (!(Test-Path "S:\downloads\$($solr7_3_1.Split("/")[-1])")) {
         Write-Output "downloading $solr7_3_1"
         Invoke-WebRequest -Uri $solr7_3_1 -OutFile "S:\downloads\$($solr7_3_1.Split("/")[-1])"
-    }#>
+    }
     $7zipFilePath = "S:\downloads\$($7zip.Split("/")[-1])"
     $FLAGS = "/qn /l S:\downloads\7zipInstallLog.log"
     Start-Process  -FilePath "$7zipFilePath" $FLAGS -Wait -PassThru
@@ -95,8 +99,13 @@
     $zk = $zk3_5_4beta.Split("/")[-1].Replace('.gz', '')
     untar x S:\downloads\$zk -o"S:\downloads\"
 
-    #$solr7_3_1_base = $solr7_3_1.Split("/")[-1].Replace('.zip','')
-    #Expand-Archive -Path "S:\downloads\$($solr7_3_1.Split("/")[-1])" -DestinationPath "S:\downloads\" #"S:\downloads\$solr7_3_1_base"
+    $solr7_3_1_base = $solr7_3_1.Split("/")[-1].Replace('.zip','')
+    Expand-Archive -Path "S:\downloads\$($solr7_3_1.Split("/")[-1])" -DestinationPath "S:\downloads\" #"S:\downloads\$solr7_3_1_base"
+    Expand-Archive -Path "S:\downloads\$($nssm.Split("/")[-1])" -DestinationPath "S:\downloads"
+   
+    $nssm_base = "S:\downloads\$($nssm.Split("/")[-1])".Replace('.zip','')
+    Copy-Item -Path $nssm_base -Destination "S:\" -Recurse
+    
     Start-Process 'S:\downloads\jre-8u172-windows-x64.exe' `
         -ArgumentList 'INSTALL_SILENT=Enable REBOOT=Disable SPONSORS=Disable AUTO_UPDATE=Disable'  `
         -Wait -PassThru
@@ -132,6 +141,15 @@ $vmId = $vmId  + 1
 #$vmId | Out-File -Encoding utf8 "S:\$zkVersion\data\myid"
 [IO.File]::WriteAllLines("S:\$zkVersion\data\myid",  $vmid)
 
+$nssm = 'S:\nssm-2.24-101-g897c7ad\win64\nssm.exe'
+$ScriptPath = "S:\$zkVersion\bin\zkserver.cmd"
+$ServiceName = 'ZooKeeper'
+
+$ServicePath = 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+$ServiceArguments = '-ExecutionPolicy Bypass -NoProfile -File "{0}"' -f $ScriptPath
+
+& $nssm install $ServiceName $ServicePath $ServiceArguments
+Start-Sleep -Seconds .5
 
 Restart-Computer -Force
 
