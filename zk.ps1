@@ -106,7 +106,7 @@
 
     #(Get-Content S:\zookeeper-3.4.12\conf\zoo.cfg).replace('dataDir=/tmp/zookeeper', 'dataDir=zookeeper-3.4.12/data') | Set-Content S:\zookeeper-3.4.12\conf\zoo.cfg
     "tickTime=2000" | Out-File -Encoding utf8 "S:\$zkVersion\conf\zoo.cfg" -Append 
-    "dataDir=zookeeper-3.4.12/data" | Out-File -Encoding utf8 "S:\$zkVersion\conf\zoo.cfg" -Append
+    "dataDir=s:/zookeeper-3.4.12/data" | Out-File -Encoding utf8 "S:\$zkVersion\conf\zoo.cfg" -Append
     "clientPort=2181" | Out-File -Encoding utf8 "S:\$zkVersion\conf\zoo.cfg" -Append
     "initLimit=5" | Out-File -Encoding utf8 "S:\$zkVersion\conf\zoo.cfg" -Append
     "syncLimit=2" | Out-File -Encoding utf8 "S:\$zkVersion\conf\zoo.cfg" -Append
