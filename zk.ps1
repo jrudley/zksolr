@@ -126,6 +126,6 @@
 New-Item "S:\$zkVersion\data" -ItemType Directory
 #increment by 1 due to copyindex starting at 0
 $vmId = $vmId  + 1 
-$vmId | Out-File -Encoding utf8 "S:\$zkVersion\data\myid"
-#[IO.File]::WriteAllLines("S:\$zkVersion\data\myid",  $vmid)
+#$vmId | Out-File -Encoding utf8 "S:\$zkVersion\data\myid"
+[IO.File]::WriteAllLines("S:\$zkVersion\data\myid",  $vmid)
 
