@@ -26,7 +26,7 @@
         $input.Close()
     }
 
-    
+    Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
     #$7zip = 'https://www.7-zip.org/a/7z1805-x64.exe'
     $7zip = 'https://www.7-zip.org/a/7z1805-x64.msi'
     $zk3_4_10 = 'https://supergsego.com/apache/zookeeper/zookeeper-3.4.10/zookeeper-3.4.10.tar.gz'
