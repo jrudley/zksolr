@@ -114,7 +114,9 @@
     [Environment]::SetEnvironmentVariable("ZOOKEEPER_HOME", "S:\$zkVersion", "Machine")
     [Environment]::SetEnvironmentVariable("JAVA_HOME", '"C:\Program Files\Java\jre1.8.0_172"', "Machine")
     setx /M PATH "%PATH%;%ZOOKEEPER_HOME%\bin;"
-
+    [Environment]::SetEnvironmentVariable("ZOOKEEPER_HOME", "S:\$zkVersion", "User")
+    [Environment]::SetEnvironmentVariable("JAVA_HOME", '"C:\Program Files\Java\jre1.8.0_172"', "User")
+    setx PATH "%PATH%;%ZOOKEEPER_HOME%\bin;"
     #configure cluster ip's in config file
     $i = 1
     while ($i -le $howManyNodes) { 
