@@ -105,11 +105,11 @@
     #Copy-Item S:\zookeeper-3.4.12\conf\zoo_sample.cfg -Recurse -Destination S:\zookeeper-3.4.12\conf\zoo.cfg
 
     #(Get-Content S:\zookeeper-3.4.12\conf\zoo.cfg).replace('dataDir=/tmp/zookeeper', 'dataDir=zookeeper-3.4.12/data') | Set-Content S:\zookeeper-3.4.12\conf\zoo.cfg
-    "tickTime=2000" | Out-File "S:\$zkVersion\conf\zoo.cfg" -Append
-    "dataDir=zookeeper-3.4.12/data" | Out-File "S:\$zkVersion\conf\zoo.cfg" -Append
-    "clientPort=2181" | Out-File "S:\$zkVersion\conf\zoo.cfg" -Append
-    "initLimit=5" | Out-File "S:\$zkVersion\conf\zoo.cfg" -Append
-    "syncLimit=2" | Out-File "S:\$zkVersion\conf\zoo.cfg" -Append
+    "tickTime=2000" | Out-File -Encoding utf8 "S:\$zkVersion\conf\zoo.cfg" -Append 
+    "dataDir=zookeeper-3.4.12/data" | Out-File -Encoding utf8 "S:\$zkVersion\conf\zoo.cfg" -Append
+    "clientPort=2181" | Out-File -Encoding utf8 "S:\$zkVersion\conf\zoo.cfg" -Append
+    "initLimit=5" | Out-File -Encoding utf8 "S:\$zkVersion\conf\zoo.cfg" -Append
+    "syncLimit=2" | Out-File -Encoding utf8 "S:\$zkVersion\conf\zoo.cfg" -Append
     #todo: launch in new process
     [Environment]::SetEnvironmentVariable("ZOOKEEPER_HOME", "S:\$zkVersion", "Machine")
     [Environment]::SetEnvironmentVariable("JAVA_HOME", '"C:\Program Files\Java\jre1.8.0_172"', "Machine")
@@ -119,12 +119,13 @@
     $i = 1
     while ($i -le $howManyNodes) { 
     #need better solution around IP'ing for the config file. We can depend on Azure dhcp for hostnames, but this solution will only work in Azure
-    "server.$i=10.0.0.$(($i+3)):2888:3888" | Out-File "S:\$zkVersion\conf\zoo.cfg" -Append
+    "server.$i=10.0.0.$(($i+3)):2888:3888" | Out-File -Encoding utf8 "S:\$zkVersion\conf\zoo.cfg" -Append
     $i = $i + 1
 }
 
 New-Item "S:\$zkVersion\data" -ItemType Directory
 #increment by 1 due to copyindex starting at 0
 $vmId = $vmId  + 1 
-$vmId | Out-File "S:\$zkVersion\data\myid"
+$vmId | Out-File -Encoding utf8 "S:\$zkVersion\data\myid"
+#[IO.File]::WriteAllLines("S:\$zkVersion\data\myid",  $vmid)
 
