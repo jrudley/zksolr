@@ -124,6 +124,7 @@ Function set-zk {
 }
 
 New-Item "S:\$zkVersion\data" -ItemType Directory
-
+#increment by 1 due to copyindex starting at 0
+$vmId = $vmId  + 1 
 $vmId | Out-File "S:\$zkVersion\data\myid"
 }
