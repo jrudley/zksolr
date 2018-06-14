@@ -145,10 +145,7 @@ $nssm = 'S:\nssm-2.24-101-g897c7ad\win64\nssm.exe'
 $ScriptPath = "S:\$zkVersion\bin\zkserver.cmd"
 $ServiceName = 'ZooKeeper'
 
-$ServicePath = 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
-$ServiceArguments = '-ExecutionPolicy Bypass -NoProfile -File "{0}"' -f $ScriptPath
-
-& $nssm install $ServiceName $ServicePath $ServiceArguments
+Start-Process -FilePath $nssm -ArgumentList "install ZooKeeper $ScriptPath" -NoNewWindow -Wait
 Start-Sleep -Seconds .5
 
 Restart-Computer -Force
