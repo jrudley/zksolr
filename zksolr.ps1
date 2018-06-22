@@ -10,6 +10,7 @@ param (
     [int]$syncLimit = 2,
     [string]$javaSourceURI = 'http://download.oracle.com/otn-pub/java/jdk/8u172-b11/a58eab1ec242421181065cdc37240b08/jre-8u172-windows-x64.exe',
     [int]$solrPort = 8983,
+    [string]$zkNameForSvc = 'ZooKeeper',
     [string]$solrNameForSvc = 'solr'
 )
  
@@ -152,8 +153,15 @@ $nssm = "$dataDirDrive\nssm-2.24-101-g897c7ad\win64\nssm.exe"
 $ScriptPath = "$dataDirDrive\$zkVersion\bin\zkserver.cmd"
 
 
-Start-Process -FilePath $nssm -ArgumentList "install ZooKeeper $ScriptPath" -NoNewWindow -Wait
-Start-Sleep -Seconds .5
+Start-Process -FilePath $nssm -ArgumentList "install $zkNameForSvc $ScriptPath" -NoNewWindow -Wait
+Start-Sleep -Seconds 2
+
+If (Get-Service $zkNameForSvc -ErrorAction SilentlyContinue) {
+    Write-Output "$zkNameForSvc Found!"
+}
+Else {
+    Write-Output "$zkNameForSvc service not found!"
+}
 
 #install SOLR
 Copy-Item -Path "$dataDirDrive\downloads\$solr7_3_1_base" -Destination "$dataDirDrive\" -Recurse
