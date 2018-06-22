@@ -155,7 +155,7 @@ Start-Process -FilePath $nssm -ArgumentList "install ZooKeeper $ScriptPath" -NoN
 Start-Sleep -Seconds .5
 
 #install SOLR
-Copy-Item -Path $solr7_3_1_base -Destination "$dataDirDrive\" -Recurse
+Copy-Item -Path "$dataDirDrive\downloads\$solr7_3_1_base" -Destination "$dataDirDrive\" -Recurse
 
 $nssm = "$dataDirDrive\nssm-2.24-101-g897c7ad\win64\nssm.exe"
 $ScriptPath = "$dataDirDrive\$solr7_3_1_base\bin\solr.cmd"
