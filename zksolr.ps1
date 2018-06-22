@@ -9,7 +9,8 @@ param (
     [int]$initLimit = 5,
     [int]$syncLimit = 2,
     [string]$javaSourceURI = 'http://download.oracle.com/otn-pub/java/jdk/8u172-b11/a58eab1ec242421181065cdc37240b08/jre-8u172-windows-x64.exe',
-    [int]$solrPort = 8983
+    [int]$solrPort = 8983,
+    [string]$solrNameForSvc = 'solr'
 )
  
 Function DeGZip-File {
@@ -157,9 +158,6 @@ Start-Sleep -Seconds .5
 #install SOLR
 Copy-Item -Path "$dataDirDrive\downloads\$solr7_3_1_base" -Destination "$dataDirDrive\" -Recurse
 
-$nssm = "$dataDirDrive\nssm-2.24-101-g897c7ad\win64\nssm.exe"
-$ScriptPath = "$dataDirDrive\$solr7_3_1_base\bin\solr.cmd"
-
 #build out solr cloud cmd line
 $solrSvrArray = @()
 $hostname = $env:COMPUTERNAME
@@ -171,8 +169,23 @@ while ($i -le $howManyNodes) {
 }
 $solrSvrArray = $solrSvrArray -join ','
 
-Start-Process -FilePath $nssm -ArgumentList "install solr $ScriptPath start -cloud -p $solrPort -z `"$solrSvrArray`"" -NoNewWindow -Wait
-Start-Sleep -Seconds .5
+$nssm = "$dataDirDrive\nssm-2.24-101-g897c7ad\win64\nssm.exe"
+$ScriptPath = "$dataDirDrive\$solr7_3_1_base\bin\solr.cmd"
+#nssm install solr "S:\solr-7.3.1\bin\solr.cmd" "start -cloud -p 8983 -z """zks1:2181, zks2:2181, zks3:2181""""
+#Start-Process -FilePath $nssm -ArgumentList "install solr $ScriptPath start -cloud -p $solrPort -z """$solrSvrArray"""" -NoNewWindow -Wait
+#Start-Process -FilePath $nssm -ArgumentList "install solr $ScriptPath start -cloud -p $solrPort -z """$solrSvrArray"""" -NoNewWindow -Wait
+#need to get start-process working for -wait
+&"$nssm" install solr $ScriptPath "start -cloud -p $solrPort -z """$solrSvrArray"""" 
+Start-Sleep -Seconds 2
+&"$nssm" set solr Start SERVICE_DELAYED_AUTO_START
+Start-Sleep -Seconds 2
+
+If (Get-Service $solrNameForSvc -ErrorAction SilentlyContinue) {
+    Write-Output "$solrNameForSvc Found!"
+}
+Else {
+    Write-Output "$solrNameForSvc service not found!"
+}
 
 Restart-Computer -Force
 
