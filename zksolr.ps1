@@ -183,9 +183,9 @@ $ScriptPath = "$dataDirDrive\$solr7_3_1_base\bin\solr.cmd"
 #Start-Process -FilePath $nssm -ArgumentList "install solr $ScriptPath start -cloud -p $solrPort -z """$solrSvrArray"""" -NoNewWindow -Wait
 #Start-Process -FilePath $nssm -ArgumentList "install solr $ScriptPath start -cloud -p $solrPort -z """$solrSvrArray"""" -NoNewWindow -Wait
 #need to get start-process working for -wait
-&"$nssm" install solr $ScriptPath "start -cloud -p $solrPort -z """$solrSvrArray"""" 
+#&"$nssm" install solr $ScriptPath "start -cloud -p $solrPort -z """$solrSvrArray"""" 
 Start-Sleep -Seconds 2
-&"$nssm" set solr Start SERVICE_DELAYED_AUTO_START
+#&"$nssm" set solr Start SERVICE_DELAYED_AUTO_START
 Start-Sleep -Seconds 2
 
 If (Get-Service $solrNameForSvc -ErrorAction SilentlyContinue) {
