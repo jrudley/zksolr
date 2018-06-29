@@ -11,7 +11,7 @@ param (
     [int]$initLimit = 5,
     [int]$syncLimit = 2,
     [string]$javaSourceURI = 'http://download.oracle.com/otn-pub/java/jdk/8u172-b11/a58eab1ec242421181065cdc37240b08/jre-8u172-windows-x64.exe',
-    [int]$solrPort = 8983,
+    [int]$solrPort = 8984,
     [string]$zkNameForSvc = 'ZooKeeper',
     [string]$solrNameForSvc = 'solr'
 )
@@ -202,8 +202,8 @@ if ($vmId -eq 1) {
         Write-Output 'Creating & trusting an new SSL Cert for solrCloud'
  
         # Create SAN Cert
-        $cert = New-SelfSignedCertificate -FriendlyName 'solrCloud' -DnsName $solrSvrArrayCert -CertStoreLocation "cert:\LocalMachine\My" -NotAfter (Get-Date).AddYears(10)
-        $cert = Get-ChildItem Cert:\LocalMachine\My | Where-Object FriendlyName -eq 'solrCloud'
+        $cert = New-SelfSignedCertificate  -FriendlyName 'solrCloud' -DnsName $solrSvrArrayCert -CertStoreLocation "cert:\LocalMachine\My" -NotAfter (Get-Date).AddYears(10) -Subject 'solrCloud'
+        #$cert = Get-ChildItem Cert:\LocalMachine\My | Where-Object FriendlyName -eq 'solrCloud'
      
         # Export Server Root Certificates
         # Check if C:\Certificates\Export\$buildName exists, and if not, create it
