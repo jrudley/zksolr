@@ -17,6 +17,8 @@ param (
     [string]$zkNameForSvc = 'ZooKeeper',
     [string]$solrNameForSvc = 'solr'
 )
+
+add-windowsfeature telnet-client
 # Check if PowerShellGEt is Installed
 Get-Module PowerShellGet -list | Select-Object Name, Version, Path
 
@@ -214,11 +216,12 @@ while ($i -le $howManyNodes) {
 }
 
 $solrSvrArrayCsv = $solrSvrArray -join ','
-$zkcli = "$dataDirDrive\$solrVersion"
-&"$zkcli"  -cmd clusterprop -name urlScheme -val https """$solrSvrArrayCsv""" 
 #ssl setup
 if ($vmId -eq 1) {
-    
+    #$zkcli = "$dataDirDrive\$solrVersion\server\scripts\cloud-scripts\zkcli.bat"
+
+    #&"$zkcli"  -cmd clusterprop -name urlScheme -val https -zkhost """$solrSvrArrayCsv"""
+
     $existingCert = Get-ChildItem Cert:\LocalMachine\Root | where-object FriendlyName -eq 'solrcloud'
     if (!($existingCert)) {
         Write-Output 'Creating & trusting an new SSL Cert for solrCloud'
@@ -352,14 +355,14 @@ else {
 
 
 $nssm = "$dataDirDrive\nssm-2.24-101-g897c7ad\win64\nssm.exe"
-$ScriptPath = "$dataDirDrive\$solr6_6_2_base\bin\solr.cmd"
+$ScriptPath = "$dataDirDrive\$solrVersion\bin\solr.cmd"
 #nssm install solr "S:\solr-7.3.1\bin\solr.cmd" "start -cloud -p 8983 -z """zks1:2181, zks2:2181, zks3:2181""""
 #Start-Process -FilePath $nssm -ArgumentList "install solr $ScriptPath start -cloud -p $solrPort -z """$solrSvrArray"""" -NoNewWindow -Wait
 #Start-Process -FilePath $nssm -ArgumentList "install solr $ScriptPath start -cloud -p $solrPort -z """$solrSvrArray"""" -NoNewWindow -Wait
 #need to get start-process working for -wait
-&"$nssm" install solr $ScriptPath "start -cloud -p $solrPort -f -z """$solrSvrArrayCsv"""" 
-Start-Sleep -Seconds 2
-&"$nssm" set solr Start SERVICE_DELAYED_AUTO_START
+&"$nssm" install solr $ScriptPath "start -cloud -p $solrPort -z """$solrSvrArrayCsv""" -f"  
+#Start-Sleep -Seconds 2
+&"$nssm" set solr Start SERVICE_DEMAND_START
 Start-Sleep -Seconds 2
 
 If (Get-Service $solrNameForSvc -ErrorAction SilentlyContinue) {
