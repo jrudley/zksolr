@@ -186,6 +186,7 @@ while ($i -le $howManyNodes) {
     $solrSvrArray += "$($hostname)$($i):2181"
     $i = $i + 1
 }
+$i = 1
 while ($i -le $howManyNodes) { 
     $solrSvrArrayCert += "$($hostname)$($i)"
     $i = $i + 1
