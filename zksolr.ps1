@@ -2,7 +2,7 @@
 param (
     [string]$blobStorageKey,
     [string]$blobStorageName,
-    [string]$containerName,
+    [string]$containerName = 'files',
     [int]$vmId,
     [int]$howManyNodes = 3,
     [string]$zkVersion = 'zookeeper-3.4.12',
