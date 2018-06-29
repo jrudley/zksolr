@@ -17,7 +17,27 @@ param (
     [string]$zkNameForSvc = 'ZooKeeper',
     [string]$solrNameForSvc = 'solr'
 )
- 
+# Check if PowerShellGEt is Installed
+Get-Module PowerShellGet -list | Select-Object Name, Version, Path
+
+# Install the NuGet modules from the PowerShell Gallery
+if (Get-Module -ListAvailable -Name NuGet) {
+    Write-Host "NuGet Module exists"
+}
+else {
+    Write-Host "NuGet Module does not exist"
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+}
+
+# Install the Azure Resource Manager modules from the PowerShell Gallery
+if (Get-Module -ListAvailable -Name AzureRM) {
+    Write-Host "AzureRM Module exists"
+}
+else {
+    Write-Host "AzureRM Module does not exist"
+    Install-Module AzureRM -Force
+    Import-Module AzureRM -Force
+}
 Function DeGZip-File {
     Param(
         $infile
