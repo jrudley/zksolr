@@ -1,5 +1,6 @@
 
 param (
+    [string]$accessKey,
     [int]$vmId,
     [int]$howManyNodes = 3,
     [string]$zkVersion = 'zookeeper-3.4.12',
@@ -15,6 +16,7 @@ param (
     [string]$solrNameForSvc = 'solr'
 )
  
+Write-Output "access key $accessKey"
 Function DeGZip-File {
     Param(
         $infile
