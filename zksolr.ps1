@@ -45,7 +45,7 @@ $nssm = 'https://nssm.cc/ci/nssm-2.24-101-g897c7ad.zip'
 $zk3_4_10 = 'https://supergsego.com/apache/zookeeper/zookeeper-3.4.10/zookeeper-3.4.10.tar.gz'
 $zk3_4_12 = 'http://mirrors.sonic.net/apache/zookeeper/current/zookeeper-3.4.12.tar.gz'
 $zk3_5_4beta = 'http://mirrors.sonic.net/apache/zookeeper/zookeeper-3.5.4-beta/zookeeper-3.5.4-beta.tar.gz'
-$solr7_3_1 = 'http://mirrors.advancedhosters.com/apache/lucene/solr/7.3.1/solr-7.3.1.zip'
+$solr7_3_1 = 'http://archive.apache.org/dist/lucene/solr/7.3.1/solr-7.3.1.zip'
 $solr6_6_2 = 'http://archive.apache.org/dist/lucene/solr/6.6.2/solr-6.6.2.zip'
 
 $disk = Get-Disk | Where-Object partitionstyle -eq 'raw' | Sort-Object number
@@ -185,7 +185,79 @@ while ($i -le $howManyNodes) {
     $solrSvrArray += "$($hostname)$($i):2181"
     $i = $i + 1
 }
-$solrSvrArray = $solrSvrArray -join ','
+
+$solrSvrArrayCsv = $solrSvrArray -join ','
+
+#ssl setup
+if ($vmId -eq 1) {
+    
+    $existingCert = Get-ChildItem Cert:\LocalMachine\Root | where FriendlyName -eq 'solrcloud'
+    if (!($existingCert)) {
+        Write-Output 'Creating & trusting an new SSL Cert for solrCloud'
+ 
+        # Create SAN Cert
+        $cert = New-SelfSignedCertificate -FriendlyName 'solrCloud' -DnsName $solrSvrArray -CertStoreLocation "cert:\LocalMachine\My" -NotAfter (Get-Date).AddYears(10)
+        $cert = Get-ChildItem Cert:\LocalMachine\My | Where-Object FriendlyName -eq 'solrCloud'
+     
+        # Export Server Root Certificates
+        # Check if C:\Certificates\Export\$buildName exists, and if not, create it
+        if (!(Test-Path 'C:\Certificates\Export\')) {
+            New-Item -ItemType Directory -Path 'C:\Certificates\Export\'
+            Write-Output 'C:\Certificates\Export\'
+        }
+        # Create keystore file
+        if (!(Test-Path -Path "$solrRoot\server\etc\solr-ssl.keystore.pfx")) {
+            Write-Host "Exporting cert for Solr to use"
+ 
+            $cert = Get-ChildItem Cert:\LocalMachine\My | where FriendlyName -eq "$solrName"
+     
+            $certStore = "$dataDirDrive\$solrVersion\server\etc\solr-ssl.keystore.pfx"
+            $certPwd = ConvertTo-SecureString -String "secret" -Force -AsPlainText
+            $cert | Export-PfxCertificate -FilePath $certStore -Password $certpwd | Out-Null
+        }
+ 
+        if (!(Test-Path -Path "$dataDirDrive\$solrVersion\bin\solr.in.cmd.old")) {
+            Write-Host "Rewriting solr config"
+            $cfg = Get-Content "$dataDirDrive\$solrVersion\bin\solr.in.cmd"
+            Rename-Item "$dataDirDrive\$solrVersion\bin\solr.in.cmd" "$dataDirDrive\$solrVersion\bin\solr.in.cmd.old"
+            $newCfg = $cfg | % { $_ -replace "REM set SOLR_SSL_KEY_STORE=etc/solr-ssl.keystore.jks", "set SOLR_SSL_KEY_STORE=$certStore" }
+            $newCfg = $newCfg | % { $_ -replace "REM set SOLR_SSL_KEY_STORE_PASSWORD=secret", "set SOLR_SSL_KEY_STORE_PASSWORD=secret" }
+            $newCfg = $newCfg | % { $_ -replace "REM set SOLR_SSL_TRUST_STORE=etc/solr-ssl.keystore.jks", "set SOLR_SSL_TRUST_STORE=$certStore" }
+            $newCfg = $newCfg | % { $_ -replace "REM set SOLR_SSL_TRUST_STORE_PASSWORD=secret", "set SOLR_SSL_TRUST_STORE_PASSWORD=secret" }
+            #$newCfg = $newCfg | % { $_ -replace "REM set SOLR_HOST=192.168.1.1", "set SOLR_HOST=$solrHost" }
+            $newCfg = $newCfg | % { $_ -replace "REM set SOLR_SSL_TRUST_STORE_TYPE=JKS", "set SOLR_SSL_TRUST_STORE_TYPE=PKCS12" }
+            $newCfg = $newCfg | % { $_ -replace "REM set SOLR_SSL_KEY_STORE_TYPE=JKS", "set SOLR_SSL_KEY_STORE_TYPE=PKCS12" }
+            $newCfg = $newCfg | % { $_ -replace "REM set SOLR_SSL_NEED_CLIENT_AUTH=false", "set SOLR_SSL_NEED_CLIENT_AUTH=false" }
+            $newCfg = $newCfg | % { $_ -replace "REM set SOLR_SSL_WANT_CLIENT_AUTH=false", "set SOLR_SSL_WANT_CLIENT_AUTH=false" }
+            $newCfg | Set-Content "$dataDirDrive\$solrVersion\bin\solr.in.cmd"
+        }
+        # Solr SAN Cert Export
+        #$localFileDirectory = "C:\Certificates\Export\"
+        #$containerName = "certificates"
+        $serverRootCertName = 'solrCloud'
+        $serverRootCertExportFile = "SolrCert.cer"
+
+        $certificateSubject = $serverRootCertName
+        $thumbprint = (Get-ChildItem -Path Cert:\LocalMachine\My | Where-Object {$_.Subject -eq "CN=$certificateSubject"}).Thumbprint;
+        Write-Host -Object "My thumbprint is: $thumbprint";
+
+        $path = 'Cert:\LocalMachine\My\' + $thumbprint 
+        Export-Certificate -cert $path -FilePath C:\Certificates\Export\$serverRootCertExportFile
+
+        #import cert into trusted stor for browser 
+        $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2("C:\Certificates\Export\SolrCert.cer")
+        $rootStore = Get-Item cert:\LocalMachine\Root
+        $rootStore.Open("ReadWrite")
+        $rootStore.Add($cert)
+        $rootStore.Close()
+
+        # remove the untrusted copy of the cert
+        $cert | Remove-Item
+    }
+ 
+
+}
+
 
 $nssm = "$dataDirDrive\nssm-2.24-101-g897c7ad\win64\nssm.exe"
 $ScriptPath = "$dataDirDrive\$solr6_6_2_base\bin\solr.cmd"
@@ -193,7 +265,7 @@ $ScriptPath = "$dataDirDrive\$solr6_6_2_base\bin\solr.cmd"
 #Start-Process -FilePath $nssm -ArgumentList "install solr $ScriptPath start -cloud -p $solrPort -z """$solrSvrArray"""" -NoNewWindow -Wait
 #Start-Process -FilePath $nssm -ArgumentList "install solr $ScriptPath start -cloud -p $solrPort -z """$solrSvrArray"""" -NoNewWindow -Wait
 #need to get start-process working for -wait
-&"$nssm" install solr $ScriptPath "start -cloud -p $solrPort -z """$solrSvrArray"""" 
+&"$nssm" install solr $ScriptPath "start -cloud -p $solrPort -f -z """$solrSvrArrayCsv"""" 
 Start-Sleep -Seconds 2
 &"$nssm" set solr Start SERVICE_DELAYED_AUTO_START
 Start-Sleep -Seconds 2
