@@ -316,7 +316,7 @@ else {
     $blobs = Get-AzureStorageBlob -Container $containerName -Context $ctx
     foreach ($blob in $blobs) { 
         Get-AzureStorageBlobContent `
-            -Container $container_name -Blob $blob.Name -Destination 'C:\Certificates\Export\' `
+            -Container $containerName  -Blob $blob.Name -Destination 'C:\Certificates\Export\' `
             -Context $ctx  
     }
     # Install Server Root Certs
