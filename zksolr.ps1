@@ -185,6 +185,10 @@ while ($i -le $howManyNodes) {
     $solrSvrArray += "$($hostname)$($i):2181"
     $i = $i + 1
 }
+while ($i -le $howManyNodes) { 
+    $solrSvrArrayCert += "$($hostname)$($i)"
+    $i = $i + 1
+}
 
 $solrSvrArrayCsv = $solrSvrArray -join ','
 
@@ -196,7 +200,7 @@ if ($vmId -eq 1) {
         Write-Output 'Creating & trusting an new SSL Cert for solrCloud'
  
         # Create SAN Cert
-        $cert = New-SelfSignedCertificate -FriendlyName 'solrCloud' -DnsName $solrSvrArray -CertStoreLocation "cert:\LocalMachine\My" -NotAfter (Get-Date).AddYears(10)
+        $cert = New-SelfSignedCertificate -FriendlyName 'solrCloud' -DnsName $solrSvrArrayCert -CertStoreLocation "cert:\LocalMachine\My" -NotAfter (Get-Date).AddYears(10)
         $cert = Get-ChildItem Cert:\LocalMachine\My | Where-Object FriendlyName -eq 'solrCloud'
      
         # Export Server Root Certificates
@@ -206,10 +210,10 @@ if ($vmId -eq 1) {
             Write-Output 'C:\Certificates\Export\'
         }
         # Create keystore file
-        if (!(Test-Path -Path "$solrRoot\server\etc\solr-ssl.keystore.pfx")) {
+        if (!(Test-Path -Path "$dataDirDrive\$solrVersion\server\etc\solr-ssl.keystore.pfx")) {
             Write-Host "Exporting cert for Solr to use"
  
-            $cert = Get-ChildItem Cert:\LocalMachine\My | where FriendlyName -eq "$solrName"
+            $cert = Get-ChildItem Cert:\LocalMachine\My | Where-Object FriendlyName -eq 'solrCloud'
      
             $certStore = "$dataDirDrive\$solrVersion\server\etc\solr-ssl.keystore.pfx"
             $certPwd = ConvertTo-SecureString -String "secret" -Force -AsPlainText
