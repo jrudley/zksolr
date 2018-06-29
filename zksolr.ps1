@@ -1,6 +1,8 @@
 
 param (
-    [string]$accessKey,
+    [string]$blobStorageKey,
+    [string]$blobStorageName,
+    [string]$containerName,
     [int]$vmId,
     [int]$howManyNodes = 3,
     [string]$zkVersion = 'zookeeper-3.4.12',
@@ -16,7 +18,6 @@ param (
     [string]$solrNameForSvc = 'solr'
 )
  
-
 Function DeGZip-File {
     Param(
         $infile
@@ -216,7 +217,7 @@ if ($vmId -eq 1) {
             Write-Host "Exporting cert for Solr to use"
  
             $cert = Get-ChildItem Cert:\LocalMachine\My | Where-Object FriendlyName -eq 'solrCloud'
-     
+
             $certStore = "$dataDirDrive\$solrVersion\server\etc\solr-ssl.keystore.pfx"
             $certPwd = ConvertTo-SecureString -String "secret" -Force -AsPlainText
             $cert | Export-PfxCertificate -FilePath $certStore -Password $certpwd | Out-Null
@@ -250,6 +251,8 @@ if ($vmId -eq 1) {
         $path = 'Cert:\LocalMachine\My\' + $thumbprint 
         Export-Certificate -cert $path -FilePath C:\Certificates\Export\$serverRootCertExportFile
 
+        # Export Certificate Store
+        Copy-Item -Path "$dataDirDrive\$solrVersion\server\etc\solr-ssl.keystore.pfx" -Destination "C:\Certificates\Export\solr-ssl.keystore.pfx"
         #import cert into trusted stor for browser 
         $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2("C:\Certificates\Export\SolrCert.cer")
         $rootStore = Get-Item cert:\LocalMachine\Root
@@ -260,8 +263,70 @@ if ($vmId -eq 1) {
         # remove the untrusted copy of the cert
         $cert | Remove-Item
     }
- 
+    # Change Log File Size to 100MB from 4MB
+    $filePath = "$dataDirDrive\$solrVersion\server\resources\log4j.properties"
 
+    $find = 'log4j.appender.file.MaxFileSize=4MB'
+    $replace = 'log4j.appender.file.MaxFileSize=100MB'
+
+    (Get-Content $filePath).replace($find, $replace) | Set-Content $filePath
+
+    # Connect to Storage Account and Set Context
+    $ctx = New-AzureStorageContext -StorageAccountName $storageAccountName -StorageAccountKey $storageAccountKey
+    New-AzureStorageContainer -Context $ctx -Name $containerName
+    $files = Get-ChildItem 'C:\Certificates\Export'
+
+    foreach ($file in $files) {
+        $fqName = $file.FullName 
+        Set-AzureStorageBlobContent -Blob $file.Name -Container $ContainerName -File $fqName -Context $ctx -Force
+    }
+
+}
+else {
+    if (!(Test-Path 'C:\Certificates\Export\')) {
+        New-Item -ItemType Directory -Path 'C:\Certificates\Export\'
+        Write-Output 'C:\Certificates\Export\'
+    }
+    $ctx = New-AzureStorageContext -StorageAccountName $storageAccountName -StorageAccountKey $storageAccountKey
+
+    $blobs = Get-AzureStorageBlob -Container $containerName -Context $ctx
+    foreach ($blob in $blobs) { 
+        Get-AzureStorageBlobContent `
+            -Container $container_name -Blob $blob.Name -Destination 'C:\Certificates\Export\' `
+            -Context $ctx  
+    }
+    # Install Server Root Certs
+    $serverRootCertName = "SolrCert.cer"
+    Import-Certificate -FilePath "C:\Certificates\Export\$serverRootCertName" -CertStoreLocation Cert:\LocalMachine\Root
+
+    # Import Certificate Store
+    $certStoreFile = "solr-ssl.keystore.pfx"
+    Copy-Item -Path "C:\Certificates\Export\$certStoreFile" -Destination "$dataDirDrive\$solrVersion\server\etc\solr-ssl.keystore.pfx"
+    
+    $certStore = "$dataDirDrive\$solrVersion\server\etc\solr-ssl.keystore.pfx"
+    if (!(Test-Path -Path "$dataDirDrive\$solrVersion\bin\solr.in.cmd.old")) {
+        Write-Host "Rewriting solr config"
+        $certStore = "$dataDirDrive\$solrVersion\server\etc\solr-ssl.keystore.pfx"
+        $cfg = Get-Content "$dataDirDrive\$solrVersion\bin\solr.in.cmd"
+        Rename-Item "$dataDirDrive\$solrVersion\bin\solr.in.cmd" "$dataDirDrive\$solrVersion\bin\solr.in.cmd.old"
+        $newCfg = $cfg | % { $_ -replace "REM set SOLR_SSL_KEY_STORE=etc/solr-ssl.keystore.jks", "set SOLR_SSL_KEY_STORE=$certStore" }
+        $newCfg = $newCfg | % { $_ -replace "REM set SOLR_SSL_KEY_STORE_PASSWORD=secret", "set SOLR_SSL_KEY_STORE_PASSWORD=secret" }
+        $newCfg = $newCfg | % { $_ -replace "REM set SOLR_SSL_TRUST_STORE=etc/solr-ssl.keystore.jks", "set SOLR_SSL_TRUST_STORE=$certStore" }
+        $newCfg = $newCfg | % { $_ -replace "REM set SOLR_SSL_TRUST_STORE_PASSWORD=secret", "set SOLR_SSL_TRUST_STORE_PASSWORD=secret" }
+        #$newCfg = $newCfg | % { $_ -replace "REM set SOLR_HOST=192.168.1.1", "set SOLR_HOST=$solrHost" }
+        $newCfg = $newCfg | % { $_ -replace "REM set SOLR_SSL_TRUST_STORE_TYPE=JKS", "set SOLR_SSL_TRUST_STORE_TYPE=PKCS12" }
+        $newCfg = $newCfg | % { $_ -replace "REM set SOLR_SSL_KEY_STORE_TYPE=JKS", "set SOLR_SSL_KEY_STORE_TYPE=PKCS12" }
+        $newCfg = $newCfg | % { $_ -replace "REM set SOLR_SSL_NEED_CLIENT_AUTH=false", "set SOLR_SSL_NEED_CLIENT_AUTH=false" }
+        $newCfg = $newCfg | % { $_ -replace "REM set SOLR_SSL_WANT_CLIENT_AUTH=false", "set SOLR_SSL_WANT_CLIENT_AUTH=false" }
+        $newCfg | Set-Content "$dataDirDrive\$solrVersion\bin\solr.in.cmd"
+    }
+    # Change Log File Size to 100MB from 4MB
+    $filePath = "$dataDirDrive\$solrVersion\server\resources\log4j.properties"
+
+    $find = 'log4j.appender.file.MaxFileSize=4MB'
+    $replace = 'log4j.appender.file.MaxFileSize=100MB'
+
+    (Get-Content $filePath).replace($find, $replace) | Set-Content $filePath
 }
 
 
