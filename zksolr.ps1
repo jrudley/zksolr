@@ -214,11 +214,12 @@ while ($i -le $howManyNodes) {
 }
 
 $solrSvrArrayCsv = $solrSvrArray -join ','
-
+$zkcli = "$dataDirDrive\$solrVersion"
+&"$zkcli"  -cmd clusterprop -name urlScheme -val https """$solrSvrArrayCsv""" 
 #ssl setup
 if ($vmId -eq 1) {
     
-    $existingCert = Get-ChildItem Cert:\LocalMachine\Root | where FriendlyName -eq 'solrcloud'
+    $existingCert = Get-ChildItem Cert:\LocalMachine\Root | where-object FriendlyName -eq 'solrcloud'
     if (!($existingCert)) {
         Write-Output 'Creating & trusting an new SSL Cert for solrCloud'
  
@@ -292,13 +293,13 @@ if ($vmId -eq 1) {
     (Get-Content $filePath).replace($find, $replace) | Set-Content $filePath
 
     # Connect to Storage Account and Set Context
-    $ctx = New-AzureStorageContext -StorageAccountName $storageAccountName -StorageAccountKey $storageAccountKey
+    $ctx = New-AzureStorageContext -StorageAccountName $blobStorageName -StorageAccountKey $blobStorageKey
     New-AzureStorageContainer -Context $ctx -Name $containerName
     $files = Get-ChildItem 'C:\Certificates\Export'
 
     foreach ($file in $files) {
         $fqName = $file.FullName 
-        Set-AzureStorageBlobContent -Blob $file.Name -Container $ContainerName -File $fqName -Context $ctx -Force
+        Set-AzureStorageBlobContent -Blob $file.Name -Container $containerName -File $fqName -Context $ctx -Force
     }
 
 }
@@ -307,7 +308,7 @@ else {
         New-Item -ItemType Directory -Path 'C:\Certificates\Export\'
         Write-Output 'C:\Certificates\Export\'
     }
-    $ctx = New-AzureStorageContext -StorageAccountName $storageAccountName -StorageAccountKey $storageAccountKey
+    $ctx = New-AzureStorageContext -StorageAccountName $blobStorageName -StorageAccountKey $blobStorageKey
 
     $blobs = Get-AzureStorageBlob -Container $containerName -Context $ctx
     foreach ($blob in $blobs) { 
