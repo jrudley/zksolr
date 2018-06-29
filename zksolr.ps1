@@ -16,7 +16,7 @@ param (
     [string]$solrNameForSvc = 'solr'
 )
  
-Write-Output "access key $accessKey"
+
 Function DeGZip-File {
     Param(
         $infile
@@ -178,6 +178,7 @@ Copy-Item -Path "$dataDirDrive\downloads\$solr6_6_2_base" -Destination "$dataDir
 
 #build out solr cloud cmd line
 $solrSvrArray = @()
+$solrSvrArrayCert = @()
 $hostname = $env:COMPUTERNAME
 $hostname = $hostname -replace '[^a-zA-Z-]', '' #remove integers from hostname
 $i = 1
