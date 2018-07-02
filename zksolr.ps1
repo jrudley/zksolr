@@ -305,6 +305,29 @@ if ($vmId -eq 1) {
         Set-AzureStorageBlobContent -Blob $file.Name -Container $containerName -File $fqName -Context $ctx -Force
     }
 
+    Copy-Item -Path "$dataDirDrive\$solrVersion\server\solr\configsets\basic_configs" -Destination "$dataDirDrive\$solrVersion\server\solr\configsets\sitecore_configs" -Recurse
+#swap out id for _uniqueid
+if (!(Test-Path -Path "$dataDirDrive\$solrVersion\server\solr\configsets\sitecore_configs\conf\managed-schema.old")) {
+    $newCfg = Get-Content "$dataDirDrive\$solrVersion\server\solr\configsets\sitecore_configs\conf\managed-schema"
+    Rename-Item "$dataDirDrive\$solrVersion\server\solr\configsets\sitecore_configs\conf\managed-schema" "$dataDirDrive\$solrVersion\server\solr\configsets\sitecore_configs\conf\managed-schema.old"
+    $newCfg = $newCfg | % { $_ -replace "<uniqueKey>id</uniqueKey>", "<uniqueKey>_uniqueid</uniqueKey>" }
+    $newCfg | Set-Content "$dataDirDrive\$solrVersion\server\solr\configsets\sitecore_configs\conf\managed-schema" -Encoding UTF8
+}
+#insert new fieldname
+$Match = [regex]::Escape('<field name="_text_" type="text_general" indexed="true" stored="false" multiValued="true"/>')
+$NewLine = '<field name="_uniqueid" type="string" indexed="true" required="true" stored="true"/>'
+$Content = Get-Content S:\solr-6.6.2\server\solr\configsets\sitecore_configs\conf\managed-schema
+$Index = ($content | Select-String -Pattern $Match).LineNumber + 1
+$NewContent = @()
+0..($Content.Count - 1) | Foreach-Object {
+    if ($_ -eq $index) {
+        $NewContent += $NewLine
+    }
+    $NewContent += $Content[$_]
+}
+$NewContent | Out-File "$dataDirDrive\$solrVersion\server\solr\configsets\sitecore_configs\conf\managed-schema" -Encoding utf8
+
+
 }
 else {
     if (!(Test-Path 'C:\Certificates\Export\')) {
