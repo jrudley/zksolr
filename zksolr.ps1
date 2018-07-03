@@ -218,13 +218,13 @@ while ($i -le $howManyNodes) {
     $solrSvrArrayCert += "$($hostname)$($i)"
     $i = $i + 1
 }
-
+$solrSvrArray += 'solrCloud'
 $solrSvrArrayCsv = $solrSvrArray -join ','
 #ssl setup
 if ($vmId -eq 1) {
-    $zkcli = "$dataDirDrive\$solrVersion\server\scripts\cloud-scripts\zkcli.bat"
+    #$zkcli = "$dataDirDrive\$solrVersion\server\scripts\cloud-scripts\zkcli.bat"
 
-    &"$zkcli"  -cmd clusterprop -name urlScheme -val https -zkhost "$($hostname):2181"
+    #&"$zkcli"  -cmd clusterprop -name urlScheme -val https -zkhost "$($hostname):2181"
 
     $existingCert = Get-ChildItem Cert:\LocalMachine\Root | where-object FriendlyName -eq 'solrcloud'
     if (!($existingCert)) {
