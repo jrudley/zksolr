@@ -40,7 +40,7 @@ else {
     Install-Module AzureRM -Force
     Import-Module AzureRM -Force
 }
-
+<#
 if (Get-Module -ListAvailable -Name SitecoreInstallFramework) {
     Write-Host "SitecoreInstallFramework Module exists"
 }
@@ -49,7 +49,7 @@ else {
     Register-PSRepository -Name SitecoreGallery -SourceLocation 'https://sitecore.myget.org/F/sc-powershell/api/v2'
     Install-Module SitecoreInstallFramework
 }
-
+#>
 
 Function DeGZip-File {
     Param(
