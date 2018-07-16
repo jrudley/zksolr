@@ -41,8 +41,15 @@ else {
     Import-Module AzureRM -Force
 }
 
-Register-PSRepository -Name SitecoreGallery -SourceLocation https://sitecore.myget.org/F/sc-powershell/api/v2;
-Install-Module SitecoreInstallFramework  -Force;
+if (Get-Module -ListAvailable -Name SitecoreInstallFramework) {
+    Write-Host "SitecoreInstallFramework Module exists"
+}
+else {
+    Write-Host "AzureRM Module does not exist"
+    Register-PSRepository -Name SitecoreGallery -SourceLocation https://sitecore.myget.org/F/sc-powershell/api/v2
+    Install-Module SitecoreInstallFramework
+}
+
 
 Function DeGZip-File {
     Param(
@@ -411,6 +418,7 @@ $ScriptPath = "$dataDirDrive\$solrVersion\bin\solr.cmd"
 #Start-Process -FilePath $nssm -ArgumentList "install solr $ScriptPath start -cloud -p $solrPort -z """$solrSvrArray"""" -NoNewWindow -Wait
 #need to get start-process working for -wait
 &"$nssm" install solr $ScriptPath "start -cloud -p $solrPort -z """$solrSvrArrayCsv""" -f"  
+"start -cloud -p 8983 -z (servername):2181 -noprompt"
 #Start-Sleep -Seconds 2
 &"$nssm" set solr Start SERVICE_DEMAND_START
 Start-Sleep -Seconds 2
