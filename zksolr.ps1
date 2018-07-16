@@ -202,6 +202,7 @@ Start-Sleep -Seconds 2
 
 If (Get-Service $zkNameForSvc -ErrorAction SilentlyContinue) {
     Write-Output "$zkNameForSvc Found!"
+    Start-Service zookeeper
 }
 Else {
     Write-Output "$zkNameForSvc service not found!"
@@ -229,6 +230,7 @@ $solrSvrArray += 'solrCloud'
 $solrSvrArrayCsv = $solrSvrArray -join ','
 #ssl setup
 if ($vmId -eq 1) {
+    #no docs on this but I should just be able to add the cluster prop and it replicates to all nodes.
     $zkcli = "$dataDirDrive\$solrVersion\server\scripts\cloud-scripts\zkcli.bat"
     &"$zkcli"  -cmd clusterprop -name urlScheme -val https -zkhost "$($env:computername):2181"
 
