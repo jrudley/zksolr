@@ -24,32 +24,32 @@ Get-Module PowerShellGet -list | Select-Object Name, Version, Path
 
 # Install the NuGet modules from the PowerShell Gallery
 if (Get-Module -ListAvailable -Name NuGet) {
-    Write-Host "NuGet Module exists"
+    Write-Output "NuGet Module exists"
 }
 else {
-    Write-Host "NuGet Module does not exist"
+    Write-Output "NuGet Module does not exist, installing.."
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
 }
 
 # Install the Azure Resource Manager modules from the PowerShell Gallery
 if (Get-Module -ListAvailable -Name AzureRM) {
-    Write-Host "AzureRM Module exists"
+    Write-Output "AzureRM Module exists"
 }
 else {
-    Write-Host "AzureRM Module does not exist"
+    Write-Output "AzureRM Module does not exist, installing.."
     Install-Module AzureRM -Force
     Import-Module AzureRM -Force
 }
-<#
+
 if (Get-Module -ListAvailable -Name SitecoreInstallFramework) {
-    Write-Host "SitecoreInstallFramework Module exists"
+    Write-Output "SitecoreInstallFramework Module exists"
 }
 else {
-    Write-Host "SIF Module does not exist"
+    Write-Output "SIF Module does not exist, installing.."
     Register-PSRepository -Name SitecoreGallery -SourceLocation 'https://sitecore.myget.org/F/sc-powershell/api/v2'
-    Install-Module SitecoreInstallFramework
+    Install-Module SitecoreInstallFramework -Force
 }
-#>
+
 
 Function DeGZip-File {
     Param(
@@ -229,9 +229,8 @@ $solrSvrArray += 'solrCloud'
 $solrSvrArrayCsv = $solrSvrArray -join ','
 #ssl setup
 if ($vmId -eq 1) {
-    #$zkcli = "$dataDirDrive\$solrVersion\server\scripts\cloud-scripts\zkcli.bat"
-
-    #&"$zkcli"  -cmd clusterprop -name urlScheme -val https -zkhost "$($hostname):2181"
+    $zkcli = "$dataDirDrive\$solrVersion\server\scripts\cloud-scripts\zkcli.bat"
+    &"$zkcli"  -cmd clusterprop -name urlScheme -val https -zkhost "$($env:computername):2181"
 
     $existingCert = Get-ChildItem Cert:\LocalMachine\Root | where-object FriendlyName -eq 'solrcloud'
     if (!($existingCert)) {
