@@ -112,7 +112,7 @@ if (!(Test-Path "$dataDirDrive\downloads\$($7zip.Split("/")[-1])")) {
 }
 if (!(Test-Path "$dataDirDrive\downloads\$($zk3_4_10.Split("/")[-1])")) {
     Write-Output "downloading $zk3_4_10"
-    Invoke-WebRequest -Uri $zk3_4_10 -OutFile "$dataDirDrive\downloads\$($zk3_4_10.Split("/")[-1])"
+    #Invoke-WebRequest -Uri $zk3_4_10 -OutFile "$dataDirDrive\downloads\$($zk3_4_10.Split("/")[-1])"
 }
 if (!(Test-Path "$dataDirDrive\downloads\$($zk3_4_12.Split("/")[-1])")) {
     Write-Output "downloading $zk3_4_12"
@@ -140,10 +140,10 @@ DeGZip-File "$dataDirDrive\downloads\$($zk3_4_12.Split("/")[-1])"
 DeGZip-File "$dataDirDrive\downloads\$($zk3_5_4beta.Split("/")[-1])"
 
 if (-not (test-path "$env:ProgramFiles\7-Zip\7z.exe")) {throw "$env:ProgramFiles\7-Zip\7z.exe needed"} 
-set-alias untar "$env:ProgramFiles\7-Zip\7z.exe" 
+set-alias untar "$env:ProgramFiles\7-Zip\7z.exe"
 
-$zk = $zk3_4_10.Split("/")[-1].Replace('.gz', '')
-untar x "$dataDirDrive\downloads\$zk" -o"$dataDirDrive\downloads\"
+#$zk = $zk3_4_10.Split("/")[-1].Replace('.gz', '')
+#untar x "$dataDirDrive\downloads\$zk" -o"$dataDirDrive\downloads\"
 
 $zk = $zk3_4_12.Split("/")[-1].Replace('.gz', '')
 untar x "$dataDirDrive\downloads\$zk" -o"$dataDirDrive\downloads\"
@@ -203,6 +203,7 @@ Start-Sleep -Seconds 2
 If (Get-Service $zkNameForSvc -ErrorAction SilentlyContinue) {
     Write-Output "$zkNameForSvc Found!"
     Start-Service zookeeper
+
 }
 Else {
     Write-Output "$zkNameForSvc service not found!"
@@ -230,8 +231,8 @@ $solrSvrArray += 'solrCloud'
 $solrSvrArrayCsv = $solrSvrArray -join ','
 #ssl setup
 if ($vmId -eq 1) {
-    #no docs on this but I should just be able to add the cluster prop and it replicates to all nodes.
-    $zkcli = "$dataDirDrive\$solrVersion\server\scripts\cloud-scripts\zkcli.bat"
+    #i dont have a quorum with zk to set this setting :(.
+    #$zkcli = "$dataDirDrive\$solrVersion\server\scripts\cloud-scripts\zkcli.bat"
     &"$zkcli"  -cmd clusterprop -name urlScheme -val https -zkhost "$($env:computername):2181"
 
     $existingCert = Get-ChildItem Cert:\LocalMachine\Root | where-object FriendlyName -eq 'solrcloud'
@@ -297,7 +298,7 @@ if ($vmId -eq 1) {
         $rootStore.Close()
 
         # remove the untrusted copy of the cert
-        $cert | Remove-Item
+        #$cert | Remove-Item
     }
     # Change Log File Size to 100MB from 4MB
     $filePath = "$dataDirDrive\$solrVersion\server\resources\log4j.properties"
@@ -418,8 +419,8 @@ $ScriptPath = "$dataDirDrive\$solrVersion\bin\solr.cmd"
 #Start-Process -FilePath $nssm -ArgumentList "install solr $ScriptPath start -cloud -p $solrPort -z """$solrSvrArray"""" -NoNewWindow -Wait
 #Start-Process -FilePath $nssm -ArgumentList "install solr $ScriptPath start -cloud -p $solrPort -z """$solrSvrArray"""" -NoNewWindow -Wait
 #need to get start-process working for -wait
-&"$nssm" install solr $ScriptPath "start -cloud -p $solrPort -z """$solrSvrArrayCsv""" -f"  
-"start -cloud -p 8983 -z (servername):2181 -noprompt"
+&"$nssm" install solr $ScriptPath "start -cloud -p $solrPort -z """$solrSvrArrayCsv""" -f"
+#"start -cloud -p 8983 -z (servername):2181 -noprompt"
 #Start-Sleep -Seconds 2
 &"$nssm" set solr Start SERVICE_DEMAND_START
 Start-Sleep -Seconds 2
