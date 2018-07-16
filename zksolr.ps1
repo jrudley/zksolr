@@ -45,8 +45,8 @@ if (Get-Module -ListAvailable -Name SitecoreInstallFramework) {
     Write-Host "SitecoreInstallFramework Module exists"
 }
 else {
-    Write-Host "AzureRM Module does not exist"
-    Register-PSRepository -Name SitecoreGallery -SourceLocation https://sitecore.myget.org/F/sc-powershell/api/v2
+    Write-Host "SIF Module does not exist"
+    Register-PSRepository -Name SitecoreGallery -SourceLocation 'https://sitecore.myget.org/F/sc-powershell/api/v2'
     Install-Module SitecoreInstallFramework
 }
 
