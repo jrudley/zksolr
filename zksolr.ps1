@@ -227,13 +227,13 @@ while ($i -le $howManyNodes) {
     $solrSvrArrayCert += "$($hostname)$($i)"
     $i = $i + 1
 }
-$solrSvrArray += 'solrCloud'
+#$solrSvrArray += 'solrCloud'
 $solrSvrArrayCsv = $solrSvrArray -join ','
 #ssl setup
 if ($vmId -eq 1) {
     #i dont have a quorum with zk to set this setting :(.
     #$zkcli = "$dataDirDrive\$solrVersion\server\scripts\cloud-scripts\zkcli.bat"
-    &"$zkcli"  -cmd clusterprop -name urlScheme -val https -zkhost "$($env:computername):2181"
+    #&"$zkcli"  -cmd clusterprop -name urlScheme -val https -zkhost "$($env:computername):2181"
 
     $existingCert = Get-ChildItem Cert:\LocalMachine\Root | where-object FriendlyName -eq 'solrcloud'
     if (!($existingCert)) {
@@ -299,6 +299,7 @@ if ($vmId -eq 1) {
 
         # remove the untrusted copy of the cert
         #$cert | Remove-Item
+        write-output "Done configuring node1"
     }
     # Change Log File Size to 100MB from 4MB
     $filePath = "$dataDirDrive\$solrVersion\server\resources\log4j.properties"
@@ -419,10 +420,10 @@ $ScriptPath = "$dataDirDrive\$solrVersion\bin\solr.cmd"
 #Start-Process -FilePath $nssm -ArgumentList "install solr $ScriptPath start -cloud -p $solrPort -z """$solrSvrArray"""" -NoNewWindow -Wait
 #Start-Process -FilePath $nssm -ArgumentList "install solr $ScriptPath start -cloud -p $solrPort -z """$solrSvrArray"""" -NoNewWindow -Wait
 #need to get start-process working for -wait
-&"$nssm" install solr $ScriptPath "start -cloud -p $solrPort -z """$solrSvrArrayCsv""" -f"
+&"$nssm" install solrt2 $ScriptPath start -cloud -p 8984 -z """""""$solrSvrArrayCsv""""""" -f
 #"start -cloud -p 8983 -z (servername):2181 -noprompt"
 #Start-Sleep -Seconds 2
-&"$nssm" set solr Start SERVICE_DEMAND_START
+&"$nssm" set solr Start SERVICE_DELAYED_START
 Start-Sleep -Seconds 2
 
 If (Get-Service $solrNameForSvc -ErrorAction SilentlyContinue) {
