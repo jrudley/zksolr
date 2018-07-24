@@ -417,8 +417,8 @@ else {
 
 $nssm = "$dataDirDrive\nssm-2.24-101-g897c7ad\win64\nssm.exe"
 $ScriptPath = "$dataDirDrive\$solrVersion\bin\solr.cmd"
-&"$nssm" install solr $ScriptPath start -cloud -p 8984 -z """""""$solrSvrArrayCsv""""""" -f
-&"$nssm" set solr Start SERVICE_DELAYED_START
+#&"$nssm" install solr $ScriptPath start -cloud -p 8984 -z """""""$solrSvrArrayCsv""""""" -f
+#&"$nssm" set solr Start SERVICE_DELAYED_START
 Start-Sleep -Seconds 2
 
 If (Get-Service $solrNameForSvc -ErrorAction SilentlyContinue) {
