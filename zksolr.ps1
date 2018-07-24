@@ -248,7 +248,7 @@ $solrSvrArrayCsv = $solrSvrArray -join ','
 if ($vmId -eq 1) {
     #i dont have a quorum with zk to set this setting :(.
     #$zkcli = "$dataDirDrive\$solrVersion\server\scripts\cloud-scripts\zkcli.bat"
-    #&"$zkcli"  -cmd clusterprop -name urlScheme -val https -zkhost "$($env:computername):2181"
+    #&"$zkcli"  -cmd clusterprop -name urlScheme -val https -zkhost "$($env:computername):2181"
 
     $existingCert = Get-ChildItem Cert:\LocalMachine\Root | where-object FriendlyName -eq 'solrcloud'
     if (!($existingCert)) {
@@ -437,10 +437,10 @@ $nssm = "$dataDirDrive\nssm-2.24-101-g897c7ad\win64\nssm.exe"
 $ScriptPath = "$dataDirDrive\$solrVersion\bin\solr.cmd"
 
 switch ($vmid)
-{
-    1 {&"$nssm" install solr $ScriptPath start -cloud -s 'cloud/node1' -p 8984 -z """""""$solrSvrArrayCsv""""""" -f}
-    2 {&"$nssm" install solr $ScriptPath start -cloud -s 'cloud/node2' -p 8984 -z """""""$solrSvrArrayCsv""""""" -f}
-    3 {&"$nssm" install solr $ScriptPath start -cloud -s 'cloud/node1' -p 8984 -z """""""$solrSvrArrayCsv""""""" -f}
+{#bin\solr start -cloud -s cloud\node1 -p 8984 -z "zks1:2181,zks2:2181,zks3:2181" -f
+    1 {&"$nssm" install solr $ScriptPath start -cloud -s "$dataDirDrive\$solrVersion\cloud\node1" -p 8984 -z """""""$solrSvrArrayCsv""""""" -f}
+    2 {&"$nssm" install solr $ScriptPath start -cloud -s "$dataDirDrive\$solrVersion\cloud\node2" -p 8985 -z """""""$solrSvrArrayCsv""""""" -f}
+    3 {&"$nssm" install solr $ScriptPath start -cloud -s "$dataDirDrive\$solrVersion\cloud\node1" -p 8986 -z """""""$solrSvrArrayCsv""""""" -f}
     Default {Write-Output 'Incorrect VMID. Did not create solr service!!'}
 }
 
