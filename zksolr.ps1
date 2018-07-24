@@ -439,8 +439,8 @@ $ScriptPath = "$dataDirDrive\$solrVersion\bin\solr.cmd"
 switch ($vmid)
 {#bin\solr start -cloud -s cloud\node1 -p 8984 -z "zks1:2181,zks2:2181,zks3:2181" -f
     1 {&"$nssm" install solr $ScriptPath start -cloud -s "$dataDirDrive\$solrVersion\cloud\node1" -p 8984 -z """""""$solrSvrArrayCsv""""""" -f}
-    2 {&"$nssm" install solr $ScriptPath start -cloud -s "$dataDirDrive\$solrVersion\cloud\node2" -p 8985 -z """""""$solrSvrArrayCsv""""""" -f}
-    3 {&"$nssm" install solr $ScriptPath start -cloud -s "$dataDirDrive\$solrVersion\cloud\node1" -p 8986 -z """""""$solrSvrArrayCsv""""""" -f}
+    2 {&"$nssm" install solr $ScriptPath start -cloud -s "$dataDirDrive\$solrVersion\cloud\node2" -p 8984 -z """""""$solrSvrArrayCsv""""""" -f}
+    3 {&"$nssm" install solr $ScriptPath start -cloud -s "$dataDirDrive\$solrVersion\cloud\node1" -p 8984 -z """""""$solrSvrArrayCsv""""""" -f}
     Default {Write-Output 'Incorrect VMID. Did not create solr service!!'}
 }
 
