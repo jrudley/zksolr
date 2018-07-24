@@ -435,7 +435,16 @@ Copy-Item -Path "$dataDirDrive\$solrVersion\server\solr" -Destination "$dataDirD
 
 $nssm = "$dataDirDrive\nssm-2.24-101-g897c7ad\win64\nssm.exe"
 $ScriptPath = "$dataDirDrive\$solrVersion\bin\solr.cmd"
-&"$nssm" install solr $ScriptPath start -cloud -s 'cloud/node1' -p 8984 -z """""""$solrSvrArrayCsv""""""" -f
+
+switch ($vmid)
+{
+    1 {&"$nssm" install solr $ScriptPath start -cloud -s 'cloud/node1' -p 8984 -z """""""$solrSvrArrayCsv""""""" -f}
+    2 {&"$nssm" install solr $ScriptPath start -cloud -s 'cloud/node2' -p 8984 -z """""""$solrSvrArrayCsv""""""" -f}
+    3 {&"$nssm" install solr $ScriptPath start -cloud -s 'cloud/node1' -p 8984 -z """""""$solrSvrArrayCsv""""""" -f}
+    Default {Write-Output 'Incorrect VMID. Did not create solr service!!'}
+}
+
+#&"$nssm" install solr $ScriptPath start -cloud -s 'cloud/node1' -p 8984 -z """""""$solrSvrArrayCsv""""""" -f
 #&"$nssm" set solr Start SERVICE_DELAYED_START
 &"$nssm" set solr Start SERVICE_DEMAND_START
 
