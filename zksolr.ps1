@@ -76,10 +76,10 @@ Set-NetFirewallProfile -Profile Domain, Public, Private -Enabled False
 #$7zip = 'https://www.7-zip.org/a/7z1805-x64.exe'
 $7zip = 'https://www.7-zip.org/a/7z1805-x64.msi'
 $nssm = 'https://nssm.cc/ci/nssm-2.24-101-g897c7ad.zip'
-$zk3_4_10 = 'https://supergsego.com/apache/zookeeper/zookeeper-3.4.10/zookeeper-3.4.10.tar.gz'
+#$zk3_4_10 = 'https://supergsego.com/apache/zookeeper/zookeeper-3.4.10/zookeeper-3.4.10.tar.gz'
 $zk3_4_12 = 'http://mirrors.sonic.net/apache/zookeeper/current/zookeeper-3.4.12.tar.gz'
-$zk3_5_4beta = 'http://mirrors.sonic.net/apache/zookeeper/zookeeper-3.5.4-beta/zookeeper-3.5.4-beta.tar.gz'
-$solr7_3_1 = 'http://archive.apache.org/dist/lucene/solr/7.3.1/solr-7.3.1.zip'
+#$zk3_5_4beta = 'http://mirrors.sonic.net/apache/zookeeper/zookeeper-3.5.4-beta/zookeeper-3.5.4-beta.tar.gz'
+#$solr7_3_1 = 'http://archive.apache.org/dist/lucene/solr/7.3.1/solr-7.3.1.zip'
 $solr6_6_2 = 'http://archive.apache.org/dist/lucene/solr/6.6.2/solr-6.6.2.zip'
 
 $disk = Get-Disk | Where-Object partitionstyle -eq 'raw' | Sort-Object number
@@ -93,7 +93,6 @@ if (!(Test-Path "$dataDirDrive\downloads")) {
     New-Item -Path "$dataDirDrive\downloads" -ItemType Directory -Force
 }
 
-    
 $javaDestination = "$dataDirDrive\downloads\$($javaSourceURI.Split('/')[-1])"
 $client = new-object System.Net.WebClient 
 $cookie = "oraclelicense=accept-securebackup-cookie"
@@ -110,14 +109,17 @@ if (!(Test-Path "$dataDirDrive\downloads\$($7zip.Split("/")[-1])")) {
     Write-Output "downloading $7zip"
     Invoke-WebRequest -Uri $7zip -OutFile "$dataDirDrive\downloads\$($7zip.Split("/")[-1])"   
 }
+<#
 if (!(Test-Path "$dataDirDrive\downloads\$($zk3_4_10.Split("/")[-1])")) {
     Write-Output "downloading $zk3_4_10"
     #Invoke-WebRequest -Uri $zk3_4_10 -OutFile "$dataDirDrive\downloads\$($zk3_4_10.Split("/")[-1])"
 }
+#>
 if (!(Test-Path "$dataDirDrive\downloads\$($zk3_4_12.Split("/")[-1])")) {
     Write-Output "downloading $zk3_4_12"
     Invoke-WebRequest -Uri $zk3_4_12 -OutFile "$dataDirDrive\downloads\$($zk3_4_12.Split("/")[-1])"
 }
+<#
 if (!(Test-Path "$dataDirDrive\downloads\$($zk3_5_4beta.Split("/")[-1])")) {
     Write-Output "downloading $zk3_5_4beta"
     Invoke-WebRequest -Uri $zk3_5_4beta -OutFile "$dataDirDrive\downloads\$($zk3_5_4beta.Split("/")[-1])"
@@ -126,6 +128,7 @@ if (!(Test-Path "$dataDirDrive\downloads\$($solr7_3_1.Split("/")[-1])")) {
     Write-Output "downloading $solr7_3_1"
     Invoke-WebRequest -Uri $solr7_3_1 -OutFile "$dataDirDrive\downloads\$($solr7_3_1.Split("/")[-1])"
 }
+#>
 if (!(Test-Path "$dataDirDrive\downloads\$($solr6_6_2.Split("/")[-1])")) {
     Write-Output "downloading $solr6_6_2"
     Invoke-WebRequest -Uri $solr6_6_2 -OutFile "$dataDirDrive\downloads\$($solr6_6_2.Split("/")[-1])"
@@ -135,9 +138,9 @@ $7zipFilePath = "$dataDirDrive\downloads\$($7zip.Split("/")[-1])"
 $FLAGS = "/qn /l $dataDirDrive\downloads\7zipInstallLog.log"
 Start-Process  -FilePath "$7zipFilePath" $FLAGS -Wait -PassThru
 
-DeGZip-File "$dataDirDrive\downloads\$($zk3_4_10.Split("/")[-1])"
+#DeGZip-File "$dataDirDrive\downloads\$($zk3_4_10.Split("/")[-1])"
 DeGZip-File "$dataDirDrive\downloads\$($zk3_4_12.Split("/")[-1])"
-DeGZip-File "$dataDirDrive\downloads\$($zk3_5_4beta.Split("/")[-1])"
+#DeGZip-File "$dataDirDrive\downloads\$($zk3_5_4beta.Split("/")[-1])"
 
 if (-not (test-path "$env:ProgramFiles\7-Zip\7z.exe")) {throw "$env:ProgramFiles\7-Zip\7z.exe needed"} 
 set-alias untar "$env:ProgramFiles\7-Zip\7z.exe"
@@ -148,12 +151,12 @@ set-alias untar "$env:ProgramFiles\7-Zip\7z.exe"
 $zk = $zk3_4_12.Split("/")[-1].Replace('.gz', '')
 untar x "$dataDirDrive\downloads\$zk" -o"$dataDirDrive\downloads\"
 
-$zk = $zk3_5_4beta.Split("/")[-1].Replace('.gz', '')
-untar x "$dataDirDrive\downloads\$zk" -o"$dataDirDrive\downloads\"
+#$zk = $zk3_5_4beta.Split("/")[-1].Replace('.gz', '')
+#untar x "$dataDirDrive\downloads\$zk" -o"$dataDirDrive\downloads\"
 
-$solr7_3_1_base = $solr7_3_1.Split("/")[-1].Replace('.zip', '')
+#$solr7_3_1_base = $solr7_3_1.Split("/")[-1].Replace('.zip', '')
 $solr6_6_2_base = $solr6_6_2.Split("/")[-1].Replace('.zip', '')
-Expand-Archive -Path "$dataDirDrive\downloads\$($solr7_3_1.Split("/")[-1])" -DestinationPath "$dataDirDrive\downloads\" 
+#Expand-Archive -Path "$dataDirDrive\downloads\$($solr7_3_1.Split("/")[-1])" -DestinationPath "$dataDirDrive\downloads\" 
 Expand-Archive -Path "$dataDirDrive\downloads\$($solr6_6_2.Split("/")[-1])" -DestinationPath "$dataDirDrive\downloads\" 
 Expand-Archive -Path "$dataDirDrive\downloads\$($nssm.Split("/")[-1])" -DestinationPath "$dataDirDrive\downloads"
    
@@ -303,10 +306,8 @@ if ($vmId -eq 1) {
     }
     # Change Log File Size to 100MB from 4MB
     $filePath = "$dataDirDrive\$solrVersion\server\resources\log4j.properties"
-
     $find = 'log4j.appender.file.MaxFileSize=4MB'
     $replace = 'log4j.appender.file.MaxFileSize=100MB'
-
     (Get-Content $filePath).replace($find, $replace) | Set-Content $filePath
 
     # Connect to Storage Account and Set Context
@@ -330,7 +331,7 @@ if ($vmId -eq 1) {
     #insert new fieldname
     $Match = [regex]::Escape('<field name="_text_" type="text_general" indexed="true" stored="false" multiValued="true"/>')
     $NewLine = '<field name="_uniqueid" type="string" indexed="true" required="true" stored="true"/>'
-    $Content = Get-Content S:\solr-6.6.2\server\solr\configsets\sitecore_configs\conf\managed-schema
+    $Content = Get-Content "$dataDirDrive\$solrVersion\server\solr\configsets\sitecore_configs\conf\managed-schema"
     $Index = ($content | Select-String -Pattern $Match).LineNumber + 1
     $NewContent = @()
     0..($Content.Count - 1) | Foreach-Object {
@@ -416,13 +417,7 @@ else {
 
 $nssm = "$dataDirDrive\nssm-2.24-101-g897c7ad\win64\nssm.exe"
 $ScriptPath = "$dataDirDrive\$solrVersion\bin\solr.cmd"
-#nssm install solr "S:\solr-7.3.1\bin\solr.cmd" "start -cloud -p 8983 -z """zks1:2181, zks2:2181, zks3:2181""""
-#Start-Process -FilePath $nssm -ArgumentList "install solr $ScriptPath start -cloud -p $solrPort -z """$solrSvrArray"""" -NoNewWindow -Wait
-#Start-Process -FilePath $nssm -ArgumentList "install solr $ScriptPath start -cloud -p $solrPort -z """$solrSvrArray"""" -NoNewWindow -Wait
-#need to get start-process working for -wait
-&"$nssm" install solrt2 $ScriptPath start -cloud -p 8984 -z """""""$solrSvrArrayCsv""""""" -f
-#"start -cloud -p 8983 -z (servername):2181 -noprompt"
-#Start-Sleep -Seconds 2
+&"$nssm" install solr $ScriptPath start -cloud -p 8984 -z """""""$solrSvrArrayCsv""""""" -f
 &"$nssm" set solr Start SERVICE_DELAYED_START
 Start-Sleep -Seconds 2
 
