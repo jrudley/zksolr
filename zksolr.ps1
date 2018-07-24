@@ -92,7 +92,7 @@ $disk |
 if (!(Test-Path "$dataDirDrive\downloads")) {
     New-Item -Path "$dataDirDrive\downloads" -ItemType Directory -Force
 }
-
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $javaDestination = "$dataDirDrive\downloads\$($javaSourceURI.Split('/')[-1])"
 
 $client = new-object System.Net.WebClient 
