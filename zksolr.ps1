@@ -12,10 +12,10 @@ param (
     [int]$clientPort = 2181, 
     [int]$initLimit = 5,
     [int]$syncLimit = 2,
-    [string]$javaSourceURI = 'http://download.oracle.com/otn-pub/java/jdk/8u172-b11/a58eab1ec242421181065cdc37240b08/jre-8u172-windows-x64.exe',
+    [string]$javaSourceURI = 'http://download.oracle.com/otn-pub/java/jdk/8u181-b13/96a7b8442fe848ef90c96a2fad6ed6d1/jre-8u181-windows-x64.exe',
     [int]$solrPort = 8984,
     [string]$zkNameForSvc = 'ZooKeeper',
-    [string]$solrNameForSvc = 'solr'
+    [string]$solrNameForSvc = 'Solr'
 )
 
 add-windowsfeature telnet-client
@@ -94,6 +94,7 @@ if (!(Test-Path "$dataDirDrive\downloads")) {
 }
 
 $javaDestination = "$dataDirDrive\downloads\$($javaSourceURI.Split('/')[-1])"
+
 $client = new-object System.Net.WebClient 
 $cookie = "oraclelicense=accept-securebackup-cookie"
 $client.Headers.Add([System.Net.HttpRequestHeader]::Cookie, $cookie) 
@@ -110,7 +111,7 @@ if (!(Test-Path "$dataDirDrive\downloads\$($7zip.Split("/")[-1])")) {
     Invoke-WebRequest -Uri $7zip -OutFile "$dataDirDrive\downloads\$($7zip.Split("/")[-1])"   
 }
 <#
-if (!(Test-Path "$dataDirDrive\downloads\$($zk3_4_10.Split("/")[-1])")) {
+if (!(Test-Path "$dataDirDrive\downloads\$($zk3_4_10.Split("\")[-1])")) {
     Write-Output "downloading $zk3_4_10"
     #Invoke-WebRequest -Uri $zk3_4_10 -OutFile "$dataDirDrive\downloads\$($zk3_4_10.Split("/")[-1])"
 }
@@ -140,7 +141,7 @@ Start-Process  -FilePath "$7zipFilePath" $FLAGS -Wait -PassThru
 
 #DeGZip-File "$dataDirDrive\downloads\$($zk3_4_10.Split("/")[-1])"
 DeGZip-File "$dataDirDrive\downloads\$($zk3_4_12.Split("/")[-1])"
-#DeGZip-File "$dataDirDrive\downloads\$($zk3_5_4beta.Split("/")[-1])"
+#DeGZip-File "$dataDirDrive\downloads\$($zk3_5_4beta.Split("\")[-1])"
 
 if (-not (test-path "$env:ProgramFiles\7-Zip\7z.exe")) {throw "$env:ProgramFiles\7-Zip\7z.exe needed"} 
 set-alias untar "$env:ProgramFiles\7-Zip\7z.exe"
@@ -163,7 +164,7 @@ Expand-Archive -Path "$dataDirDrive\downloads\$($nssm.Split("/")[-1])" -Destinat
 $nssm_base = "$dataDirDrive\downloads\$($nssm.Split("/")[-1])".Replace('.zip', '')
 Copy-Item -Path $nssm_base -Destination "S:\" -Recurse
     
-Start-Process "$dataDirDrive\downloads\jre-8u172-windows-x64.exe" `
+Start-Process "$dataDirDrive\downloads\$($javaDestination.Split('\')[-1])" `
     -ArgumentList 'INSTALL_SILENT=Enable REBOOT=Disable SPONSORS=Disable AUTO_UPDATE=Disable'  `
     -Wait -PassThru
 
@@ -174,8 +175,18 @@ Copy-Item "$dataDirDrive\downloads\$zkVersion" -Recurse -Destination "$dataDirDr
 "initLimit=$initLimit" | Out-File -Encoding utf8 "$dataDirDrive\$zkVersion\conf\zoo.cfg" -Append
 "syncLimit=$syncLimit" | Out-File -Encoding utf8 "$dataDirDrive\$zkVersion\conf\zoo.cfg" -Append
 #todo: launch in new process
+$java64dir = Get-ChildItem "${env:ProgramFiles}\Java"
+ 
+if (Test-Path -Path "$($java64dir.FullName)\bin") 
+{
+	[Environment]::SetEnvironmentVariable("JAVA_HOME", """$($java64dir.FullName)""", "Machine")		 
+}
+else
+{
+Write-Output 'ERROR: JAVA PATH NOT SET. COULD NOT FIND JAVA DIRECTORY'
+}
 [Environment]::SetEnvironmentVariable("ZOOKEEPER_HOME", "$dataDirDrive\$zkVersion", "Machine")
-[Environment]::SetEnvironmentVariable("JAVA_HOME", '"C:\Program Files\Java\jre1.8.0_172"', "Machine")
+
 $oldpath = (Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH).path
 setx /M PATH "$oldpath;%ZOOKEEPER_HOME%\bin;"
 
@@ -205,7 +216,8 @@ Start-Sleep -Seconds 2
 
 If (Get-Service $zkNameForSvc -ErrorAction SilentlyContinue) {
     Write-Output "$zkNameForSvc Found!"
-    Start-Service zookeeper
+    #need to reboot due to env variables
+    #Start-Service zookeeper
 
 }
 Else {
@@ -414,18 +426,24 @@ else {
 
 }
 
+#required per solrcloud https docs
+New-Item -Path "$dataDirDrive\$solrVersion\cloud" -ItemType Directory
+Copy-Item -Path "$dataDirDrive\$solrVersion\server\solr" -Destination "$dataDirDrive\$solrVersion\cloud\node1" -Recurse
+Copy-Item -Path "$dataDirDrive\$solrVersion\server\solr" -Destination "$dataDirDrive\$solrVersion\cloud\node2" -Recurse
+Copy-Item -Path "$dataDirDrive\$solrVersion\server\solr" -Destination "$dataDirDrive\$solrVersion\cloud\node3" -Recurse
+
 
 $nssm = "$dataDirDrive\nssm-2.24-101-g897c7ad\win64\nssm.exe"
 $ScriptPath = "$dataDirDrive\$solrVersion\bin\solr.cmd"
-#&"$nssm" install solr $ScriptPath start -cloud -p 8984 -z """""""$solrSvrArrayCsv""""""" -f
+&"$nssm" install solr $ScriptPath start -cloud -s 'cloud/node1' -p 8984 -z """""""$solrSvrArrayCsv""""""" -f
 #&"$nssm" set solr Start SERVICE_DELAYED_START
-Start-Sleep -Seconds 2
+&"$nssm" set solr Start SERVICE_DEMAND_START
 
 If (Get-Service $solrNameForSvc -ErrorAction SilentlyContinue) {
     Write-Output "$solrNameForSvc Found!"
 }
 Else {
-    Write-Output "$solrNameForSvc service not found!"
+    Write-Output "$solrNameForSvc SERVICE NOT FOUND!"
 }
 
 Restart-Computer -Force
