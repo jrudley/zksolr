@@ -75,7 +75,7 @@ Function DeGZip-File {
 Set-NetFirewallProfile -Profile Domain, Public, Private -Enabled False
 #$7zip = 'https://www.7-zip.org/a/7z1805-x64.exe'
 $7zip = 'https://www.7-zip.org/a/7z1805-x64.msi'
-$nssm = 'https://nssm.cc/ci/nssm-2.24-101-g897c7ad.zip'
+$nssm = 'https://github.com/jrudley/zksolr/raw/master/nssm-2.24.zip'
 #$zk3_4_10 = 'https://supergsego.com/apache/zookeeper/zookeeper-3.4.10/zookeeper-3.4.10.tar.gz'
 $zk3_4_12 = 'http://mirrors.sonic.net/apache/zookeeper/current/zookeeper-3.4.12.tar.gz'
 #$zk3_5_4beta = 'http://mirrors.sonic.net/apache/zookeeper/zookeeper-3.5.4-beta/zookeeper-3.5.4-beta.tar.gz'
