@@ -207,7 +207,7 @@ New-Item "S:\$zkVersion\data" -ItemType Directory
 #$vmId | Out-File -Encoding utf8 "S:\$zkVersion\data\myid"
 [IO.File]::WriteAllLines("S:\$zkVersion\data\myid", $vmid)
 
-$nssm = "$dataDirDrive\nssm-2.24-101-g897c7ad\win64\nssm.exe"
+$nssm = "$dataDirDrive\nssm-2.24\win64\nssm.exe"
 $ScriptPath = "$dataDirDrive\$zkVersion\bin\zkserver.cmd"
 
 
@@ -433,7 +433,7 @@ Copy-Item -Path "$dataDirDrive\$solrVersion\server\solr" -Destination "$dataDirD
 Copy-Item -Path "$dataDirDrive\$solrVersion\server\solr" -Destination "$dataDirDrive\$solrVersion\cloud\node3" -Recurse
 
 
-$nssm = "$dataDirDrive\nssm-2.24-101-g897c7ad\win64\nssm.exe"
+$nssm = "$dataDirDrive\nssm-2.24\win64\nssm.exe"
 $ScriptPath = "$dataDirDrive\$solrVersion\bin\solr.cmd"
 
 switch ($vmid)
