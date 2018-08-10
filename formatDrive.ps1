@@ -1,5 +1,5 @@
 param (
-    [string]$dataDriveLetter = 'S'
+    [string]$dataDriveLetter
 )
 
 $disk = Get-Disk | Where-Object partitionstyle -eq 'raw' | Sort-Object number
