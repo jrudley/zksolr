@@ -7,3 +7,5 @@ $disk |
     Initialize-Disk -PartitionStyle MBR -PassThru |
     New-Partition -UseMaximumSize -DriveLetter $dataDriveLetter |
     Format-Volume -FileSystem NTFS -NewFileSystemLabel "Data" -Confirm:$false -Force
+    
+    Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
