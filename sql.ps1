@@ -1,18 +1,10 @@
 Param (
-    [Parameter(Mandatory=$true)]  [string]$dataDriveLetter,
     [Parameter(Mandatory=$true)] [string] $VmAdminUsername,
     [Parameter(Mandatory=$true)] [string] $VmAdminPassword,
     [Parameter(Mandatory=$true)] [string] $SqlLoginUsername,
     [Parameter(Mandatory=$true)] [string] $SqlLoginPassword
 )
 
-$disk = Get-Disk | Where-Object partitionstyle -eq 'raw' | Sort-Object number
-$disk | 
-    Initialize-Disk -PartitionStyle MBR -PassThru |
-    New-Partition -UseMaximumSize -DriveLetter $dataDriveLetter |
-    Format-Volume -FileSystem NTFS -NewFileSystemLabel "Data" -Confirm:$false -Force
-    
-    Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
 
 Install-PackageProvider -Name 'NuGet' -RequiredVersion '2.8.5.201' -Force
 Set-PSRepository -Name 'PSGallery' -InstallationPolicy 'Trusted'
@@ -43,13 +35,16 @@ $vmAdminCredential = New-Object -TypeName 'PSCredential' -ArgumentList "$env:Com
         -LoginPSCredential $sqlLoginCredential 
     }
 
+
+if (!(Test-Path 's:\data')) {
+New-Item -ItemType Directory 's:\data'
+}
+
     Invoke-Sqlcmd -ServerInstance 'localhost' -Database 'master'  `
  -Query "EXEC master..sp_addsrvrolemember @loginame = N'$SqlLoginUsername', @rolename = N'sysadmin';EXEC xp_instance_regwrite N'HKEY_LOCAL_MACHINE', N'Software\Microsoft\MSSQLServer\MSSQLServer', N'DefaultData', REG_SZ, N's:\data'
 GO
 EXEC xp_instance_regwrite N'HKEY_LOCAL_MACHINE', N'Software\Microsoft\MSSQLServer\MSSQLServer', N'DefaultLog', REG_SZ, N's:\data'
 GO" 
 
-if (!(Test-Path 's:\data')) {
-New-Item -ItemType Directory 's:\data'
-}
+
 
