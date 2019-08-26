@@ -1,3 +1,8 @@
+<#
+Run on sqlvm under the local admin account, not domain.
+.\sql.ps1 -VmAdminUsername 'jrudley' -VmAdminPassword 'vmPassw0rd!' -SqlLoginUsername 'scdeploy' -SqlLoginPassword 'scDeployP@ssw0rd'
+#>
+
 Param (
     [Parameter(Mandatory=$true)] [string] $VmAdminUsername,
     [Parameter(Mandatory=$true)] [string] $VmAdminPassword,
