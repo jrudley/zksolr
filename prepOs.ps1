@@ -131,3 +131,5 @@ $disk[1] |  Initialize-Disk -PartitionStyle MBR -PassThru |    New-Partition -Us
     Format-Volume -FileSystem NTFS -NewFileSystemLabel "Logs" -Confirm:$false -Force
 
 Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
+
+Restart-Computer -Force
